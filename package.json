@@ -1,0 +1,64 @@
+{
+  "name": "@atayahmet/react-axios-token-provider",
+  "version": "0.0.1-rc.1",
+  "description": "Make easy things again.",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "files": [
+    "dist",
+    "lib/**/*"
+  ],
+  "directories": {
+    "lib": "lib"
+  },
+  "scripts": {
+    "build": "tsc",
+    "format": "prettier --write \"src/**/*.ts\" \"src/**/*.js\"",
+    "lint": "tslint -p tsconfig.json",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm test && npm run lint",
+    "preversion": "npm run lint",
+    "version": "npm run format && git add -A src",
+    "postversion": "git push && git push --tags",
+    "test": "jest --config ./jest.config.js --passWithNoTests",
+    "test:watch": "npm run test -- --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/atayahmet/react-axios-token-provider.git"
+  },
+  "keywords": [
+    "object",
+    "slider"
+  ],
+  "author": "Ahmet ATAY",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/atayahmet/react-axios-token-provider/issues"
+  },
+  "homepage": "https://github.com/atayahmet/react-axios-token-provider#readme",
+  "peerDependencies": {
+    "react": ">= 16.3.0",
+    "react-dom": ">= 16.3.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^24.0.19",
+    "@types/jsdom": "^12.2.4",
+    "@types/react": "^16.9.5",
+    "@types/react-dom": "^16.9.1",
+    "@types/react-test-renderer": "^16.9.1",
+    "jest": "^24.9.0",
+    "prettier": "^1.18.2",
+    "react": "^16.9.0",
+    "react-dom": "^16.9.0",
+    "react-test-renderer": "^16.11.0",
+    "ts-jest": "^24.1.0",
+    "tslint": "^5.19.0",
+    "tslint-config-prettier": "^1.18.0",
+    "typescript": "^3.6.2"
+  },
+  "dependencies": {
+    "@util-funcs/object-get": "0.0.2",
+    "axios": "^0.19.2"
+  }
+}
