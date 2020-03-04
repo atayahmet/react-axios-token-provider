@@ -4,13 +4,13 @@ React Axios Token Provider package is a make easy what repetitive processes. For
 
 # Installation
 
-Use the package manager **yarn** or **npm** to install react-axios-token-provider
+Use the package manager **yarn** or **npm** to install `react-axios-token-provider
 
-```js
+```sh
 $ npm i @atayahmet/react-axios-token-provider --save
 ```
 
-```js
+```sh
 $ yarn add @atayahmet/react-axios-token-provider
 ```
 
