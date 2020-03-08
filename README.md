@@ -31,3 +31,17 @@ function App() {
   );
 }
 ```
+
+# Props
+
+| name               | type          | default               |
+|--------------------|---------------|-----------------------|
+| instance           | AxiosInstance | AxiosInstance         |
+| init               | Function      | -                     |
+| refreshToken       | Boolean       | false                 |
+| csrfToken          | Boolean       | false                 |
+| initialAccessToken | String        | -                     |
+| initialRefreshToken| String        | -                     |
+| initialCsrfToken   | String        | -                     |
+| tokenPathVariants  | IPathVariants | Default Path Variants |
+| statusCallbacks    | Object        | -
