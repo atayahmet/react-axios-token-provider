@@ -43,7 +43,7 @@ function App() {
 | initialAccessToken | String        | -                     | Initial access token.           |
 | initialRefreshToken| String        | -                     | Initial refresh token.          |
 | initialCsrfToken   | String        | -                     | Initial csrf token.             |
-| tokenPathVariants  | IPathVariants | Default Path Variants | The paths of all type tokens in response object.|
+| tokenPathVariants  | IPathVariants | [Default Path Variants](#default-path-variants) | The paths of all type tokens in response object.|
 | statusCallbacks    | Object        | -                     |Specific events of status codes. |
 
 ## tokenPathVariants
@@ -71,4 +71,3 @@ You can define all token (access, refresh or csrf) paths to this prop.
   csrfTokens: ["headers.x-csrf-token"]
 }
 ```
-
