@@ -1,29 +1,34 @@
-import get from "@util-funcs/object-get";
-import axios, {
+import get from '@util-funcs/object-get';
+import {
   AxiosError,
   AxiosInstance,
   AxiosRequestConfig,
   AxiosResponse
-} from "axios";
-import React, { Component } from "react";
+} from 'axios';
+import React, { Component } from 'react';
 
 export default class AxiosTokenProvider extends Component<
   IAxiosTokenProvider,
   any
 > {
+  private readonly ACCESS_TOKEN_KEY = 'accessToken';
+  private readonly REFRESH_TOKEN_KEY = 'refreshToken';
+  private readonly CSRF_TOKEN_KEY = 'csrfToken';
   private isRefreshTokenActive: boolean = false;
   private isCsrfTokenActive: boolean = false;
-  private instance: AxiosInstance = axios;
+  private instance: AxiosInstance | undefined;
   private storage: Storage = localStorage;
+  private csrfTokenHeaderName: string = 'X-Csrf-Token';
+  private authHeaderName: string = 'Authorization';
+  private authHeaderPrefix: string = 'Bearer';
   private storeKeys: IStoreKey = {
-    accessToken: "access_token",
-    csrfToken: "csrf_token",
-    refreshToken: "refresh_token",
+    accessToken: 'access_token',
+    refreshToken: 'refresh_token'
   };
   private pathVariants: IPathVariants = {
-    accessTokens: ["headers.x-access-token", "data.access_token"],
-    csrfTokens: ["headers.x-csrf-token"],
-    refreshTokens: ["headers.x-refresh-token", "data.refresh_token"],
+    accessToken: ['headers.x-access-token', 'data.access_token'],
+    csrfToken: ['headers.x-csrf-token', 'headers.x-xsrf-token'],
+    refreshToken: ['headers.x-refresh-token', 'data.refresh_token'],
   };
 
   constructor(props: IAxiosTokenProvider) {
@@ -42,16 +47,10 @@ export default class AxiosTokenProvider extends Component<
       initialCsrfToken
     } = this.props;
 
-    const {
-      accessToken: accessTokenKey,
-      refreshToken: refreshTokenKey,
-      csrfToken: csrfTokenKey
-    } = this.storeKeys;
-
     this.setState({
-      [csrfTokenKey]: initialCsrfToken,
-      [accessTokenKey]: initialAccessToken,
-      [refreshTokenKey]: initialRefreshToken
+      [this.CSRF_TOKEN_KEY]: initialCsrfToken,
+      [this.ACCESS_TOKEN_KEY]: initialAccessToken,
+      [this.REFRESH_TOKEN_KEY]: initialRefreshToken
     });
   }
 
@@ -62,40 +61,50 @@ export default class AxiosTokenProvider extends Component<
   private initialize() {
     const {
       init,
+      instance,
       csrfToken = false,
       refreshToken = false,
       storage = localStorage,
       tokenPathVariants = {},
-      instance = (this.instance || axios) as AxiosInstance
+      authHeaderName = this.authHeaderName,
+      authHeaderPrefix = this.authHeaderPrefix,
+      csrfTokenHeaderName = this.csrfTokenHeaderName
     } = this.props;
 
     this.storage = storage;
-    this.instance = instance;
+    this.instance = instance as AxiosInstance;
     this.isCsrfTokenActive = csrfToken;
     this.isRefreshTokenActive = refreshToken;
+    this.authHeaderName = authHeaderName;
+    this.authHeaderPrefix = authHeaderPrefix;
+    this.csrfTokenHeaderName = csrfTokenHeaderName;
     this.pathVariants = this.mergePathVariants(tokenPathVariants);
 
-    instance.interceptors.request.use(this.requestInterceptor);
-    instance.interceptors.response.use(
+    this.instance.interceptors.request.use(this.requestInterceptor);
+    this.instance.interceptors.response.use(
       this.responseInterceptor,
       this.responseInterceptorError
     );
 
     if (init) {
-      init(instance);
+      init(this.instance);
     }
   }
 
   private requestInterceptor = (config: AxiosRequestConfig) => {
     const key = this.isRefreshTokenActive
-      ? this.storeKeys.refreshToken
-      : this.storeKeys.accessToken;
+      ? this.REFRESH_TOKEN_KEY
+      : this.ACCESS_TOKEN_KEY;
 
+    // set authorization header
     const token = this.getToken(key);
-    config.headers["Authorization"] = `Bearer ${token}`;
+    config.headers[this.authHeaderName] = `${this.authHeaderPrefix} ${token}`;
 
+    // set csrf header
     if (this.isCsrfTokenActive) {
-      config.headers["X-CSRF-TOKEN"] = this.getToken(this.storeKeys.csrfToken);
+      config.headers[this.csrfTokenHeaderName] = this.getToken(
+        this.CSRF_TOKEN_KEY
+      );
     }
 
     return config;
@@ -118,20 +127,23 @@ export default class AxiosTokenProvider extends Component<
   };
 
   private mergePathVariants(variants: IPathVariants): IPathVariants {
-    return {
-      accessTokens: [
-        ...new Set([
-          ...this.pathVariants.accessTokens,
-          ...(variants.accessTokens || [])
-        ])
-      ],
-      refreshTokens: [
-        ...new Set([
-          ...this.pathVariants.refreshTokens,
-          ...(variants.refreshTokens || [])
-        ])
-      ]
-    };
+    const keys = Object.keys(variants) as Keys[];
+    let paths = {};
+
+    while (keys.length > 0) {
+      const key = keys.shift();
+
+      if (!key || !(key in this.pathVariants)) {
+        continue;
+      }
+
+      const prevPaths = this.pathVariants[key] || [];
+      const customPaths = variants[key] || [];
+      const uniquePaths = new Set([...prevPaths, ...customPaths]);
+      paths = { ...paths, [key]: [...uniquePaths] };
+    }
+
+    return paths;
   }
 
   private setToken(response: AxiosResponse) {
@@ -139,7 +151,7 @@ export default class AxiosTokenProvider extends Component<
     let tokens = {};
 
     while (keys.length > 0) {
-      const key = keys.shift() || "";
+      const key = keys.shift() || '';
       const variants = get(key, this.pathVariants, []);
 
       for (const variant of variants) {
@@ -175,23 +187,27 @@ interface IAxiosTokenProvider extends AxiosRequestConfig {
   storage?: Storage;
   refreshToken?: boolean;
   csrfToken?: boolean;
-  instance?: AxiosInstance;
+  instance: AxiosInstance;
   initialAccessToken?: string;
   initialRefreshToken?: string;
   initialCsrfToken?: string;
+  csrfTokenHeaderName?: string;
+  authHeaderName?: string;
+  authHeaderPrefix?: string;
   tokenPathVariants?: IPathVariants;
   init?: (instance: AxiosInstance) => any;
   statusCallbacks?: Record<number | string, CallableFunction>;
 }
 
 interface IPathVariants {
-  accessTokens?: string[];
-  refreshTokens?: string[];
-  csrfTokens?: string[];
+  accessToken?: string[];
+  refreshToken?: string[];
+  csrfToken?: string[];
 }
 
 interface IStoreKey extends Record<string, any> {
   accessToken: string;
   refreshToken: string;
-  csrfToken: string;
 }
+
+type Keys = 'accessToken' | 'refreshToken' | 'csrfToken';

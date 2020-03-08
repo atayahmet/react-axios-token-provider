@@ -5,3 +5,10 @@
 - Docs improvement.
 - The tokens added to local state and prevented component rerender with `shouldComponentUpdate` hook.
 - Added csrf support.
+
+## Changes for v1.0.0-rc.3:
+
+- Made csrf header name changable.
+- Made authorization header name changable.
+- Made authorization header value prefix changable.
+- Path variants merge has become more practical.
