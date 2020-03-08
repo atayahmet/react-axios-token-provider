@@ -62,4 +62,13 @@ You can define all token (access, refresh or csrf) paths to this prop.
 </AxiosTokenProvider>
 ```
 
+## Default Path Variants
+
+```js
+{
+  accessTokens: ["headers.x-access-token", "data.access_token"],
+  refreshTokens: ["headers.x-refresh-token", "data.refresh_token"],
+  csrfTokens: ["headers.x-csrf-token"]
+}
+```
 
