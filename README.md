@@ -1,6 +1,6 @@
 # React Axios Token Provider
 
-React Axios Token Provider package is a make easy what repetitive processes. For example handle access token or refresh token management easly.
+React Axios Token Provider package is a make easy what repetitive processes. For example handle access token or refresh token management process easly.
 
 # Installation
 
@@ -34,14 +34,14 @@ function App() {
 
 # Props
 
-| name               | type          | default               |
-|--------------------|---------------|-----------------------|
-| instance           | AxiosInstance | AxiosInstance         |
-| init               | Function      | -                     |
-| refreshToken       | Boolean       | false                 |
-| csrfToken          | Boolean       | false                 |
-| initialAccessToken | String        | -                     |
-| initialRefreshToken| String        | -                     |
-| initialCsrfToken   | String        | -                     |
-| tokenPathVariants  | IPathVariants | Default Path Variants |
-| statusCallbacks    | Object        | -
+| name               | type          | default               | description                     |
+|--------------------|---------------|-----------------------|---------------------------------|
+| instance           | AxiosInstance | AxiosInstance         | An axios instance.              |
+| init               | Function      | -                     | Initializer helper function.    |
+| refreshToken       | Boolean       | false                 | Activation of refresh token.    |
+| csrfToken          | Boolean       | false                 | Activation of csrf token.       |
+| initialAccessToken | String        | -                     | Initial access token.           |
+| initialRefreshToken| String        | -                     | Initial refresh token.          |
+| initialCsrfToken   | String        | -                     | Initial csrf token.             |
+| tokenPathVariants  | IPathVariants | Default Path Variants | The paths of all type tokens in response object.|
+| statusCallbacks    | Object        | -                     |Specific events of status codes. |
