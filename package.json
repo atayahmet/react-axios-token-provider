@@ -1,6 +1,6 @@
 {
   "name": "@atayahmet/react-axios-token-provider",
-  "version": "0.0.1-rc.1",
+  "version": "1.0.0-rc.2",
   "description": "Make easy things again.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
