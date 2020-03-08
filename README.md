@@ -15,7 +15,7 @@ $ yarn add @atayahmet/react-axios-token-provider
 ```
 
 
-## Usage
+## Basic Usage
 
 ```jsx
 import AxiosTokenProvider from '@atayahmet/react-axios-token-provider';
@@ -24,9 +24,9 @@ import axios from 'axios';
 function App() {
   return (
     <AxiosTokenProvider instance={axios}>
-      <View>
-        <Text>Hello World!</Text>
-      </View>
+      <div>
+        <h1>Hello World!</h1>
+      </div>
     </AxiosTokenProvider>
   );
 }
