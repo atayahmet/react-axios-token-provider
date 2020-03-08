@@ -45,3 +45,21 @@ function App() {
 | initialCsrfToken   | String        | -                     | Initial csrf token.             |
 | tokenPathVariants  | IPathVariants | Default Path Variants | The paths of all type tokens in response object.|
 | statusCallbacks    | Object        | -                     |Specific events of status codes. |
+
+## tokenPathVariants
+
+You can define all token (access, refresh or csrf) paths to this prop.
+
+**Example:**
+
+```tsx
+<AxiosTokenProvider
+  tokenPathVariants={{
+    accessTokens: ["headers.X-Access-Token", "data.tokens.access_token"],
+    refreshTokens: ["headers.X-Refresh-Token", "data.tokens.refresh_token"]
+  }}  
+>
+</AxiosTokenProvider>
+```
+
+
