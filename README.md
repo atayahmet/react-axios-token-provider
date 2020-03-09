@@ -63,6 +63,8 @@ import axios from "axios";
 
 The init prop is a inilizer function for provide extra config to developers.
 
+**Example:**
+
 ```js
 function initializer(instance) {
   instance.baseURL = "https://reqres.in/api";
@@ -94,15 +96,17 @@ You can define all token (access, refresh or csrf) paths to this prop.
 
 ```js
 {
-  accessTokens: ["headers.x-access-token", "data.access_token"],
-  refreshTokens: ["headers.x-refresh-token", "data.refresh_token"],
-  csrfTokens: ["headers.x-csrf-token"]
+  accessToken: ['headers.x-access-token', 'data.access_token'],
+  csrfToken: ['headers.x-csrf-token', 'headers.x-xsrf-token'],
+  refreshToken: ['headers.x-refresh-token', 'data.refresh_token'],
 }
 ```
 
 ## statusCallbacks
 
 You can define specific callbacks to response status codes.
+
+**Example:**
 
 ```js
 function unauthorized(response) {
