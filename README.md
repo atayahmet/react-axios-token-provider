@@ -14,12 +14,11 @@ $ npm i @atayahmet/react-axios-token-provider --save
 $ yarn add @atayahmet/react-axios-token-provider
 ```
 
-
 ## Basic Usage
 
 ```jsx
-import AxiosTokenProvider from '@atayahmet/react-axios-token-provider';
-import axios from 'axios';
+import AxiosTokenProvider from "@atayahmet/react-axios-token-provider";
+import axios from "axios";
 
 function App() {
   return (
@@ -34,21 +33,47 @@ function App() {
 
 ## Props
 
-| name               | type          | default               | description                     |
-|--------------------|---------------|-----------------------|---------------------------------|
-| instance           | AxiosInstance | AxiosInstance         | An axios instance.              |
-| init               | Function      | -                     | Initializer helper function.    |
-| refreshToken       | Boolean       | false                 | Activation of refresh token.    |
-| csrfToken          | Boolean       | false                 | Activation of csrf token.       |
-| initialAccessToken | String        | -                     | Initial access token.           |
-| initialRefreshToken| String        | -                     | Initial refresh token.          |
-| initialCsrfToken   | String        | -                     | Initial csrf token.             |
-| tokenPathVariants  | IPathVariants | [Default Path Variants](#default-path-variants) | The paths of all type tokens in response object.|
-| statusCallbacks    | Object        | -                     |Specific events of status codes. |
+| name                | type          | default                                         | description                                      |
+| ------------------- | ------------- | ----------------------------------------------- | ------------------------------------------------ |
+| instance            | AxiosInstance | AxiosInstance                                   | An axios instance.                               |
+| init                | Function      | -                                               | Initializer helper function.                     |
+| refreshToken        | Boolean       | false                                           | Activation of refresh token.                     |
+| csrfToken           | Boolean       | false                                           | Activation of csrf token.                        |
+| initialAccessToken  | String        | -                                               | Initial access token.                            |
+| initialRefreshToken | String        | -                                               | Initial refresh token.                           |
+| initialCsrfToken    | String        | -                                               | Initial csrf token.                              |
+| tokenPathVariants   | IPathVariants | [Default Path Variants](#default-path-variants) | The paths of all type tokens in response object. |
+| statusCallbacks     | Object        | -                                               | Specific events of status codes.                 |
 
 ## instance
 
 You need to define your axios instance you want to manage. If no instance is defined, no action will be taken. A log is written to the console at the warning level.
+
+**Example:**
+
+```tsx
+import axios from "axios";
+
+<AxiosTokenProvider instance={axios}>
+  <App />
+</AxiosTokenProvider>;
+```
+
+## init
+
+The init prop is a inilizer function for provide extra config to developers.
+
+```js
+function initializer(instance) {
+  instance.baseURL = "https://reqres.in/api";
+}
+```
+
+```tsx
+<AxiosTokenProvider init={initializer} instance={axios}>
+  <App />
+</AxiosTokenProvider>
+```
 
 ## tokenPathVariants
 
@@ -61,9 +86,8 @@ You can define all token (access, refresh or csrf) paths to this prop.
   tokenPathVariants={{
     accessTokens: ["headers.X-Access-Token", "data.tokens.access_token"],
     refreshTokens: ["headers.X-Refresh-Token", "data.tokens.refresh_token"]
-  }}  
->
-</AxiosTokenProvider>
+  }}
+></AxiosTokenProvider>
 ```
 
 ## Default Path Variants
@@ -74,4 +98,27 @@ You can define all token (access, refresh or csrf) paths to this prop.
   refreshTokens: ["headers.x-refresh-token", "data.refresh_token"],
   csrfTokens: ["headers.x-csrf-token"]
 }
+```
+
+## statusCallbacks
+
+You can define specific callbacks to response status codes.
+
+```js
+function unauthorized(response) {
+  location.href = '/login';
+}
+
+function forbidden(response) {
+  // do something
+}
+```
+
+```tsx
+<AxiosTokenProvider
+  statusCallbacks={{
+    401: unauthorized,
+    403: forbidden
+  }}
+></AxiosTokenProvider>
 ```
