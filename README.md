@@ -2,6 +2,16 @@
 
 React Axios Token Provider package is a make easy what repetitive processes. For example handle access token or refresh token management process easly.
 
+## Why
+
+It can be preferred to reduce repetitive practices for authentication operations in projects.
+
+## Features
+
+- Access token management
+- Refresh token management
+- Csrf/Xsrf token management
+
 ## Installation
 
 Use the package manager **yarn** or **npm** to install `react-axios-token-provider`
@@ -41,7 +51,7 @@ function App() {
 | csrfToken           | Boolean       | false                                           | Activation of csrf token.                        |
 | initialAccessToken  | String        | -                                               | Initial access token.                            |
 | initialRefreshToken | String        | -                                               | Initial refresh token.                           |
-| initialCsrfToken    | String        | -                                               | Initial csrf token.                              |
+| icliennitialCsrfToken    | String        | -                                               | Initial csrf token.                              |
 | tokenPathVariants   | IPathVariants | [Default Path Variants](#default-path-variants) | The paths of all type tokens in response object. |
 | statusCallbacks     | Object        | -                                               | Specific events of status codes.                 |
 
