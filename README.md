@@ -46,6 +46,10 @@ function App() {
 | tokenPathVariants  | IPathVariants | [Default Path Variants](#default-path-variants) | The paths of all type tokens in response object.|
 | statusCallbacks    | Object        | -                     |Specific events of status codes. |
 
+## instance
+
+You need to define your axios instance you want to manage. If no instance is defined, no action will be taken. A log is written to the console at the warning level.
+
 ## tokenPathVariants
 
 You can define all token (access, refresh or csrf) paths to this prop.
