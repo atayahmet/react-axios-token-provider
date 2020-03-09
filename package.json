@@ -1,7 +1,7 @@
 {
   "name": "@atayahmet/react-axios-token-provider",
-  "version": "1.0.0-rc.3",
-  "description": "Make easy things again.",
+  "version": "1.0.0-rc.4",
+  "description": "React Axios Token Provider package is a make easy what repetitive processes.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
   "files": [
@@ -28,8 +28,15 @@
     "url": "git+https://github.com/atayahmet/react-axios-token-provider.git"
   },
   "keywords": [
-    "object",
-    "slider"
+    "react",
+    "react-native",
+    "axios",
+    "axios token",
+    "axios auth token",
+    "access token",
+    "refresh token",
+    "csrf token",
+    "provider"
   ],
   "author": "Ahmet ATAY",
   "license": "MIT",

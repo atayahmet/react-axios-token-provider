@@ -71,6 +71,10 @@ export default class AxiosTokenProvider extends Component<
       csrfTokenHeaderName = this.csrfTokenHeaderName
     } = this.props;
 
+    if (!instance) {
+      return;
+    }
+    
     this.storage = storage;
     this.instance = instance as AxiosInstance;
     this.isCsrfTokenActive = csrfToken;
