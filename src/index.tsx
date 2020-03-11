@@ -13,6 +13,7 @@ export default class AxiosTokenProvider extends Component<IAxiosTokenProvider, a
   private csrfTokenHeaderName: string = 'X-Csrf-Token';
   private authHeaderName: string = 'Authorization';
   private authHeaderPrefix: string = 'Bearer';
+  private isUnmounted: boolean = false;
   private storeKeys: IStoreKey = {
     accessToken: 'access_token',
     refreshToken: 'refresh_token',
@@ -33,6 +34,8 @@ export default class AxiosTokenProvider extends Component<IAxiosTokenProvider, a
   }
 
   public componentDidMount() {
+    this.isUnmounted = false;
+
     const { initialAccessToken, initialRefreshToken, initialCsrfToken } = this.props;
 
     this.setState({
@@ -42,9 +45,11 @@ export default class AxiosTokenProvider extends Component<IAxiosTokenProvider, a
     });
   }
 
-  public render() {
-    return <>{this.props.children}</>;
+  public componentWillUnmount() {
+    this.isUnmounted = true;
   }
+
+  public render = () => <>{this.props.children}</>;
 
   private initialize() {
     const {
@@ -152,7 +157,9 @@ export default class AxiosTokenProvider extends Component<IAxiosTokenProvider, a
       }
     }
 
-    this.setState({ ...this.state, ...tokens });
+    if (!this.isUnmounted) {
+      this.setState({ ...this.state, ...tokens });
+    }
   }
 
   private getToken(key: string) {
