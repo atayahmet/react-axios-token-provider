@@ -1,16 +1,8 @@
 import get from '@util-funcs/object-get';
-import {
-  AxiosError,
-  AxiosInstance,
-  AxiosRequestConfig,
-  AxiosResponse
-} from 'axios';
+import { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
 import React, { Component } from 'react';
 
-export default class AxiosTokenProvider extends Component<
-  IAxiosTokenProvider,
-  any
-> {
+export default class AxiosTokenProvider extends Component<IAxiosTokenProvider, any> {
   private readonly ACCESS_TOKEN_KEY = 'accessToken';
   private readonly REFRESH_TOKEN_KEY = 'refreshToken';
   private readonly CSRF_TOKEN_KEY = 'csrfToken';
@@ -23,7 +15,7 @@ export default class AxiosTokenProvider extends Component<
   private authHeaderPrefix: string = 'Bearer';
   private storeKeys: IStoreKey = {
     accessToken: 'access_token',
-    refreshToken: 'refresh_token'
+    refreshToken: 'refresh_token',
   };
   private pathVariants: IPathVariants = {
     accessToken: ['headers.x-access-token', 'data.access_token'],
@@ -41,16 +33,12 @@ export default class AxiosTokenProvider extends Component<
   }
 
   public componentDidMount() {
-    const {
-      initialAccessToken,
-      initialRefreshToken,
-      initialCsrfToken
-    } = this.props;
+    const { initialAccessToken, initialRefreshToken, initialCsrfToken } = this.props;
 
     this.setState({
       [this.CSRF_TOKEN_KEY]: initialCsrfToken,
       [this.ACCESS_TOKEN_KEY]: initialAccessToken,
-      [this.REFRESH_TOKEN_KEY]: initialRefreshToken
+      [this.REFRESH_TOKEN_KEY]: initialRefreshToken,
     });
   }
 
@@ -68,13 +56,13 @@ export default class AxiosTokenProvider extends Component<
       tokenPathVariants = {},
       authHeaderName = this.authHeaderName,
       authHeaderPrefix = this.authHeaderPrefix,
-      csrfTokenHeaderName = this.csrfTokenHeaderName
+      csrfTokenHeaderName = this.csrfTokenHeaderName,
     } = this.props;
 
     if (!instance) {
       return;
     }
-    
+
     this.storage = storage;
     this.instance = instance as AxiosInstance;
     this.isCsrfTokenActive = csrfToken;
@@ -85,10 +73,7 @@ export default class AxiosTokenProvider extends Component<
     this.pathVariants = this.mergePathVariants(tokenPathVariants);
 
     this.instance.interceptors.request.use(this.requestInterceptor);
-    this.instance.interceptors.response.use(
-      this.responseInterceptor,
-      this.responseInterceptorError
-    );
+    this.instance.interceptors.response.use(this.responseInterceptor, this.responseInterceptorError);
 
     if (init) {
       init(this.instance);
@@ -96,9 +81,8 @@ export default class AxiosTokenProvider extends Component<
   }
 
   private requestInterceptor = (config: AxiosRequestConfig) => {
-    const key = this.isRefreshTokenActive
-      ? this.REFRESH_TOKEN_KEY
-      : this.ACCESS_TOKEN_KEY;
+    const { [this.REFRESH_TOKEN_KEY]: refreshToken } = this.state;
+    const key = this.isRefreshTokenActive && !!refreshToken ? this.REFRESH_TOKEN_KEY : this.ACCESS_TOKEN_KEY;
 
     // set authorization header
     const token = this.getToken(key);
@@ -106,9 +90,7 @@ export default class AxiosTokenProvider extends Component<
 
     // set csrf header
     if (this.isCsrfTokenActive) {
-      config.headers[this.csrfTokenHeaderName] = this.getToken(
-        this.CSRF_TOKEN_KEY
-      );
+      config.headers[this.csrfTokenHeaderName] = this.getToken(this.CSRF_TOKEN_KEY);
     }
 
     return config;
@@ -163,7 +145,7 @@ export default class AxiosTokenProvider extends Component<
         const storageKey = this.storeKeys[key];
 
         if (result && storageKey) {
-          tokens = { ...tokens, [storageKey]: result };
+          tokens = { ...tokens, [key]: result };
           this.storage.setItem(storageKey, result);
           break;
         }
@@ -174,7 +156,7 @@ export default class AxiosTokenProvider extends Component<
   }
 
   private getToken(key: string) {
-    return this.state[key] ? this.state[key] : this.storage.getItem(key);
+    return this.state[key] ? this.state[key] : this.storage.getItem(this.storeKeys[key]);
   }
 
   private runStatusCallbacks(response: AxiosResponse) {

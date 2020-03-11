@@ -13,8 +13,13 @@
 - Made authorization header value prefix changable.
 - Path variants merge has become more practical.
 
-## Changes for v1.0.0-rc.4:
+## Changes for v1.0.0-rct.4:
 
 - Docs improvement.
 - Changed package description.
 - Added condition that checking the existence of instance.
+
+## Changes for v1.0.0-rc.5:
+
+- Fixed wrong store key.
+- Added fallback to request interceptor when refresh key invalid (undefined or null)
