@@ -1,32 +1,37 @@
-import get from '@util-funcs/object-get';
 import { AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
+import PropTypes from 'prop-types';
 import React, { Component } from 'react';
+import {
+  ACCESS_TOKEN_KEY,
+  CSRF_TOKEN_KEY,
+  DEFAULT_ACCESS_TOKEN_PATHS,
+  DEFAULT_CSRF_TOKEN_PATHS,
+  DEFAULT_REFRESH_TOKEN,
+  REFRESH_TOKEN_KEY,
+} from './constants';
+import { IAxiosTokenProvider, IPathVariants, IStoreKey } from './types';
+import { mergePathVariants, prepareTokens } from './utils';
 
 export default class AxiosTokenProvider extends Component<IAxiosTokenProvider, any> {
-  private readonly ACCESS_TOKEN_KEY = 'accessToken';
-  private readonly REFRESH_TOKEN_KEY = 'refreshToken';
-  private readonly CSRF_TOKEN_KEY = 'csrfToken';
+  public static propTypes: any;
   private isRefreshTokenActive: boolean = false;
   private isCsrfTokenActive: boolean = false;
   private instance: AxiosInstance | undefined;
   private storage: Storage = localStorage;
+  private callbacks: Record<number, CallableFunction> = {};
   private csrfTokenHeaderName: string = 'X-Csrf-Token';
   private authHeaderName: string = 'Authorization';
   private authHeaderPrefix: string = 'Bearer';
   private isUnmounted: boolean = false;
-  private storeKeys: IStoreKey = {
-    accessToken: 'access_token',
-    refreshToken: 'refresh_token',
-  };
   private pathVariants: IPathVariants = {
-    accessToken: ['headers.x-access-token', 'data.access_token'],
-    csrfToken: ['headers.x-csrf-token', 'headers.x-xsrf-token'],
-    refreshToken: ['headers.x-refresh-token', 'data.refresh_token'],
+    accessToken: DEFAULT_ACCESS_TOKEN_PATHS,
+    csrfToken: DEFAULT_CSRF_TOKEN_PATHS,
+    refreshToken: DEFAULT_REFRESH_TOKEN,
   };
 
   constructor(props: IAxiosTokenProvider) {
     super(props);
-    this.initialize();
+    this.initialize(props);
   }
 
   public shouldComponentUpdate() {
@@ -35,14 +40,7 @@ export default class AxiosTokenProvider extends Component<IAxiosTokenProvider, a
 
   public componentDidMount() {
     this.isUnmounted = false;
-
-    const { initialAccessToken, initialRefreshToken, initialCsrfToken } = this.props;
-
-    this.setState({
-      [this.CSRF_TOKEN_KEY]: initialCsrfToken,
-      [this.ACCESS_TOKEN_KEY]: initialAccessToken,
-      [this.REFRESH_TOKEN_KEY]: initialRefreshToken,
-    });
+    this.setInitialTokens(this.props);
   }
 
   public componentWillUnmount() {
@@ -51,18 +49,24 @@ export default class AxiosTokenProvider extends Component<IAxiosTokenProvider, a
 
   public render = () => <>{this.props.children}</>;
 
-  private initialize() {
+  public updateProps = ({ updater, ...props }: IAxiosTokenProvider) => {
+    this.initialize({ ...this.props, ...props });
+  };
+
+  private initialize(props: IAxiosTokenProvider) {
     const {
       init,
       instance,
+      updater,
       csrfToken = false,
       refreshToken = false,
+      statusCallbacks = {},
       storage = localStorage,
       tokenPathVariants = {},
       authHeaderName = this.authHeaderName,
       authHeaderPrefix = this.authHeaderPrefix,
       csrfTokenHeaderName = this.csrfTokenHeaderName,
-    } = this.props;
+    } = props;
 
     if (!instance) {
       return;
@@ -75,10 +79,15 @@ export default class AxiosTokenProvider extends Component<IAxiosTokenProvider, a
     this.authHeaderName = authHeaderName;
     this.authHeaderPrefix = authHeaderPrefix;
     this.csrfTokenHeaderName = csrfTokenHeaderName;
-    this.pathVariants = this.mergePathVariants(tokenPathVariants);
-
+    this.pathVariants = mergePathVariants(this.pathVariants, tokenPathVariants);
+    this.callbacks = statusCallbacks;
     this.instance.interceptors.request.use(this.requestInterceptor);
     this.instance.interceptors.response.use(this.responseInterceptor, this.responseInterceptorError);
+    this.instance.defaults.headers['X-Requested-With'] = 'XMLHttpRequest';
+
+    if (updater) {
+      updater(this.updateProps);
+    }
 
     if (init) {
       init(this.instance);
@@ -86,19 +95,32 @@ export default class AxiosTokenProvider extends Component<IAxiosTokenProvider, a
   }
 
   private requestInterceptor = (config: AxiosRequestConfig) => {
-    const { [this.REFRESH_TOKEN_KEY]: refreshToken } = this.state;
-    const key = this.isRefreshTokenActive && !!refreshToken ? this.REFRESH_TOKEN_KEY : this.ACCESS_TOKEN_KEY;
+    const tokens = this.getTokens();
+    let newConfig: AxiosRequestConfig;
 
-    // set authorization header
-    const token = this.getToken(key);
-    config.headers[this.authHeaderName] = `${this.authHeaderPrefix} ${token}`;
-
-    // set csrf header
-    if (this.isCsrfTokenActive) {
-      config.headers[this.csrfTokenHeaderName] = this.getToken(this.CSRF_TOKEN_KEY);
+    if (tokens instanceof Promise) {
+      return tokens.then(allTokens => {
+        newConfig = this.setTokens(config, allTokens);
+        return Promise.resolve(newConfig);
+      });
     }
 
-    return config;
+    newConfig = this.setTokens(config, tokens);
+
+    return newConfig;
+  };
+
+  private responseInterceptor = (response: AxiosResponse) => {
+    const tokens = { ...this.state.tokens, ...prepareTokens(this.pathVariants, response) };
+
+    this.storage.setItem('tokens', JSON.stringify(tokens));
+    this.runStatusCallbacks(response);
+
+    if (!this.isUnmounted) {
+      this.setState({ ...this.state, tokens });
+    }
+
+    return response;
   };
 
   private responseInterceptorError = (error: AxiosError) => {
@@ -111,64 +133,58 @@ export default class AxiosTokenProvider extends Component<IAxiosTokenProvider, a
     return Promise.reject(error);
   };
 
-  private responseInterceptor = (response: AxiosResponse) => {
-    this.setToken(response);
-    this.runStatusCallbacks(response);
-    return response;
+  private setInitialTokens = (props: IAxiosTokenProvider) => {
+    const { initialAccessToken, initialRefreshToken, initialCsrfToken } = props;
+    const tokens = this.getTokens();
+
+    const stateUpdater = (storedTokens: Record<string, string>) =>
+      this.setState({
+        tokens: {
+          [CSRF_TOKEN_KEY]: initialCsrfToken || storedTokens[CSRF_TOKEN_KEY],
+          [ACCESS_TOKEN_KEY]: initialAccessToken || storedTokens[ACCESS_TOKEN_KEY],
+          [REFRESH_TOKEN_KEY]: initialRefreshToken || storedTokens[REFRESH_TOKEN_KEY],
+        },
+      });
+
+    if (tokens instanceof Promise) {
+      return tokens.then(allTokens => stateUpdater(allTokens));
+    }
+
+    stateUpdater(tokens);
   };
 
-  private mergePathVariants(variants: IPathVariants): IPathVariants {
-    const keys = Object.keys(variants) as Keys[];
-    let paths = {};
+  private setTokens = (config: AxiosRequestConfig, tokens: IStoreKey) => {
+    const { [REFRESH_TOKEN_KEY]: refreshToken } = tokens;
+    const key = this.isRefreshTokenActive && !!refreshToken ? REFRESH_TOKEN_KEY : ACCESS_TOKEN_KEY;
 
-    while (keys.length > 0) {
-      const key = keys.shift();
-
-      if (!key || !(key in this.pathVariants)) {
-        continue;
-      }
-
-      const prevPaths = this.pathVariants[key] || [];
-      const customPaths = variants[key] || [];
-      const uniquePaths = new Set([...prevPaths, ...customPaths]);
-      paths = { ...paths, [key]: [...uniquePaths] };
+    // set authorization header
+    if (tokens[key]) {
+      config.headers[this.authHeaderName] = `${this.authHeaderPrefix} ${tokens[key]}`;
     }
 
-    return paths;
-  }
-
-  private setToken(response: AxiosResponse) {
-    const keys = Object.keys(this.pathVariants);
-    let tokens = {};
-
-    while (keys.length > 0) {
-      const key = keys.shift() || '';
-      const variants = get(key, this.pathVariants, []);
-
-      for (const variant of variants) {
-        const result = get(variant, response);
-        const storageKey = this.storeKeys[key];
-
-        if (result && storageKey) {
-          tokens = { ...tokens, [key]: result };
-          this.storage.setItem(storageKey, result);
-          break;
-        }
-      }
+    // set csrf header
+    if (this.isCsrfTokenActive) {
+      const csrfToken = tokens[CSRF_TOKEN_KEY];
+      config.headers[this.csrfTokenHeaderName] = csrfToken || null;
     }
 
-    if (!this.isUnmounted) {
-      this.setState({ ...this.state, ...tokens });
-    }
-  }
+    return config;
+  };
 
-  private getToken(key: string) {
-    return this.state[key] ? this.state[key] : this.storage.getItem(this.storeKeys[key]);
+  private getTokens() {
+    const { tokens } = this.state || {};
+
+    if (!!tokens) {
+      return tokens;
+    }
+
+    const storedTokens = this.storage.getItem('tokens') as any;
+
+    return typeof storedTokens === 'string' ? JSON.parse(storedTokens) : storedTokens;
   }
 
   private runStatusCallbacks(response: AxiosResponse) {
-    const { statusCallbacks = [] } = this.props;
-    const cb = statusCallbacks[response.status];
+    const cb = this.callbacks[response.status];
 
     if (cb) {
       cb(response);
@@ -176,31 +192,23 @@ export default class AxiosTokenProvider extends Component<IAxiosTokenProvider, a
   }
 }
 
-interface IAxiosTokenProvider extends AxiosRequestConfig {
-  storage?: Storage;
-  refreshToken?: boolean;
-  csrfToken?: boolean;
-  instance: AxiosInstance;
-  initialAccessToken?: string;
-  initialRefreshToken?: string;
-  initialCsrfToken?: string;
-  csrfTokenHeaderName?: string;
-  authHeaderName?: string;
-  authHeaderPrefix?: string;
-  tokenPathVariants?: IPathVariants;
-  init?: (instance: AxiosInstance) => any;
-  statusCallbacks?: Record<number | string, CallableFunction>;
-}
-
-interface IPathVariants {
-  accessToken?: string[];
-  refreshToken?: string[];
-  csrfToken?: string[];
-}
-
-interface IStoreKey extends Record<string, any> {
-  accessToken: string;
-  refreshToken: string;
-}
-
-type Keys = 'accessToken' | 'refreshToken' | 'csrfToken';
+AxiosTokenProvider.propTypes = {
+  authHeaderName: PropTypes.string,
+  authHeaderPrefix: PropTypes.string,
+  csrfToken: PropTypes.bool,
+  csrfTokenHeaderName: PropTypes.string,
+  init: PropTypes.func,
+  instance: PropTypes.func.isRequired,
+  refreshToken: PropTypes.bool,
+  statusCallbacks: PropTypes.object,
+  storage: PropTypes.shape({
+    getItem: PropTypes.func.isRequired,
+    setItem: PropTypes.func.isRequired,
+  }),
+  tokenPathVariants: PropTypes.shape({
+    accessToken: PropTypes.arrayOf(PropTypes.string).isRequired,
+    csrfToken: PropTypes.arrayOf(PropTypes.string).isRequired,
+    refreshToken: PropTypes.arrayOf(PropTypes.string).isRequired,
+  }),
+  updater: PropTypes.func,
+};

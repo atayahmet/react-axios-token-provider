@@ -27,3 +27,16 @@
 ## Changes for v1.0.0-rc.6:
 
 - Added component unmount check for avoid memory leak error.
+
+## Changes for v1.0.0-rc.7:
+
+- Added component tests.
+- Added props types for plain javascript environment.
+- Fixed merge path variants function.
+- Added `updater` prop for update provider config without render the component.
+- Added async support to storage processes.
+
+## Changes for v1.0.0-rc.8:
+
+- Initial token and previously registered token added to the state according to the hierarchy.
+- If csrf token value is undfined, changed as null.

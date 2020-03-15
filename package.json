@@ -1,6 +1,6 @@
 {
   "name": "@atayahmet/react-axios-token-provider",
-  "version": "1.0.0-rc.6",
+  "version": "1.0.0-rc.8",
   "description": "React Axios Token Provider package is a make easy what repetitive processes.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -20,7 +20,7 @@
     "preversion": "npm run lint",
     "version": "npm run format && git add -A src",
     "postversion": "git push && git push --tags",
-    "test": "jest --config ./jest.config.js --passWithNoTests",
+    "test": "jest --config ./jest.config.js",
     "test:watch": "npm run test -- --watch"
   },
   "repository": {
@@ -36,6 +36,7 @@
     "access token",
     "refresh token",
     "csrf token",
+    "token manager",
     "provider"
   ],
   "author": "Ahmet ATAY",
@@ -54,6 +55,7 @@
     "@types/react": "^16.9.5",
     "@types/react-dom": "^16.9.1",
     "@types/react-test-renderer": "^16.9.1",
+    "axios-mock-adapter": "^1.17.0",
     "jest": "^24.9.0",
     "prettier": "^1.18.2",
     "react": "^16.9.0",
@@ -66,6 +68,7 @@
   },
   "dependencies": {
     "@util-funcs/object-get": "0.0.2",
-    "axios": "^0.19.2"
+    "axios": "^0.19.2",
+    "prop-types": "^15.7.2"
   }
 }
