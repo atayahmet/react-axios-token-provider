@@ -40,3 +40,7 @@
 
 - Initial token and previously registered token added to the state according to the hierarchy.
 - If csrf token value is undfined, changed as null.
+
+## Changes for v1.0.0-rc.9:
+
+- Default value is assigned in case it is empty from `getToken()` method.

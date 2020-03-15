@@ -135,7 +135,7 @@ export default class AxiosTokenProvider extends Component<IAxiosTokenProvider, a
 
   private setInitialTokens = (props: IAxiosTokenProvider) => {
     const { initialAccessToken, initialRefreshToken, initialCsrfToken } = props;
-    const tokens = this.getTokens();
+    const tokens = this.getTokens() || {};
 
     const stateUpdater = (storedTokens: Record<string, string>) =>
       this.setState({
