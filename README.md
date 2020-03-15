@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/atayahmet/react-axios-token-provider.svg?branch=master)](https://travis-ci.org/atayahmet/react-axios-token-provider)
+
 # React Axios Token Provider
 
 React Axios Token Provider package is a make easy what repetitive processes. For example handle access token or refresh token management process easly.
@@ -51,7 +53,7 @@ function App() {
 | csrfToken           | Boolean       | false                                           | Activation of csrf token.                        |
 | initialAccessToken  | String        | -                                               | Initial access token.                            |
 | initialRefreshToken | String        | -                                               | Initial refresh token.                           |
-| icliennitialCsrfToken    | String        | -                                               | Initial csrf token.                              |
+| initialCsrfToken    | String        | -                                               | Initial csrf token.                              |
 | tokenPathVariants   | IPathVariants | [Default Path Variants](#default-path-variants) | The paths of all type tokens in response object. |
 | statusCallbacks     | Object        | -                                               | Specific events of status codes.                 |
 
