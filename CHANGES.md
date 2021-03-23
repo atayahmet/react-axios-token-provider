@@ -44,3 +44,7 @@
 ## Changes for v1.0.0-rc.9:
 
 - Default value is assigned in case it is empty from `getToken()` method.
+
+## Changes for v1.0.1
+
+- Axios security fix
