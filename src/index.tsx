@@ -14,6 +14,8 @@ import { mergePathVariants, prepareTokens } from './utils';
 
 export default class AxiosTokenProvider extends Component<IAxiosTokenProvider, any> {
   public static propTypes: any;
+  private reqIntVal?: number | null;
+  private resIntVal?: number | null;
   private isRefreshTokenActive: boolean = false;
   private isCsrfTokenActive: boolean = false;
   private instance: AxiosInstance | undefined;
@@ -22,7 +24,6 @@ export default class AxiosTokenProvider extends Component<IAxiosTokenProvider, a
   private csrfTokenHeaderName: string = 'X-Csrf-Token';
   private authHeaderName: string = 'Authorization';
   private authHeaderPrefix: string = 'Bearer';
-  private isUnmounted: boolean = false;
   private pathVariants: IPathVariants = {
     accessToken: DEFAULT_ACCESS_TOKEN_PATHS,
     csrfToken: DEFAULT_CSRF_TOKEN_PATHS,
@@ -39,12 +40,18 @@ export default class AxiosTokenProvider extends Component<IAxiosTokenProvider, a
   }
 
   public componentDidMount() {
-    this.isUnmounted = false;
     this.setInitialTokens(this.props);
   }
 
   public componentWillUnmount() {
-    this.isUnmounted = true;
+    if (this.reqIntVal) {
+      this.instance?.interceptors.request.eject(this.reqIntVal);
+      this.reqIntVal = null;
+    }
+    if (this.resIntVal) {
+      this.instance?.interceptors.response.eject(this.resIntVal);
+      this.resIntVal = null;
+    }
   }
 
   public render = () => <>{this.props.children}</>;
@@ -81,9 +88,10 @@ export default class AxiosTokenProvider extends Component<IAxiosTokenProvider, a
     this.csrfTokenHeaderName = csrfTokenHeaderName;
     this.pathVariants = mergePathVariants(this.pathVariants, tokenPathVariants);
     this.callbacks = statusCallbacks;
-    this.instance.interceptors.request.use(this.requestInterceptor);
-    this.instance.interceptors.response.use(this.responseInterceptor, this.responseInterceptorError);
     this.instance.defaults.headers['X-Requested-With'] = 'XMLHttpRequest';
+
+    this.reqIntVal = this.instance.interceptors.request.use(this.requestInterceptor);
+    this.resIntVal = this.instance.interceptors.response.use(this.responseInterceptor, this.responseInterceptorError);
 
     if (updater) {
       updater(this.updateProps);
@@ -115,10 +123,7 @@ export default class AxiosTokenProvider extends Component<IAxiosTokenProvider, a
 
     this.storage.setItem('tokens', JSON.stringify(tokens));
     this.runStatusCallbacks(response);
-
-    if (!this.isUnmounted) {
-      this.setState({ ...this.state, tokens });
-    }
+    this.setState({ ...this.state, tokens });
 
     return response;
   };
@@ -153,7 +158,7 @@ export default class AxiosTokenProvider extends Component<IAxiosTokenProvider, a
     stateUpdater(tokens);
   };
 
-  private setTokens = (config: AxiosRequestConfig, tokens: IStoreKey) => {
+  private setTokens = (config: AxiosRequestConfig, tokens: IStoreKey = {} as IStoreKey) => {
     const { [REFRESH_TOKEN_KEY]: refreshToken } = tokens;
     const key = this.isRefreshTokenActive && !!refreshToken ? REFRESH_TOKEN_KEY : ACCESS_TOKEN_KEY;
 
