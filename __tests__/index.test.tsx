@@ -249,6 +249,14 @@ describe('Axios Token Provider component test', () => {
       expect(config.headers['X-Csrf-Token']).toBeDefined();
       expect(config.headers['X-Csrf-Token']).toEqual(CSRF_TOKEN);
     });
+
+    it('should handle nullish values for tokens parameter', () => {
+      const component = TestRenderer.create(
+        <AxiosTokenProvider csrfToken={true} {...defaultProps} />,
+      ).getInstance() as any;
+
+      expect(() => component.setTokens(Axios.defaults, null)).not.toThrow();
+    });
   });
 
   describe('getTokens', () => {

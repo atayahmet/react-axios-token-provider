@@ -158,7 +158,8 @@ export default class AxiosTokenProvider extends Component<IAxiosTokenProvider, a
     stateUpdater(tokens);
   };
 
-  private setTokens = (config: AxiosRequestConfig, tokens: IStoreKey = {} as IStoreKey) => {
+  private setTokens = (config: AxiosRequestConfig, tokens: IStoreKey) => {
+    tokens = tokens || {};
     const { [REFRESH_TOKEN_KEY]: refreshToken } = tokens;
     const key = this.isRefreshTokenActive && !!refreshToken ? REFRESH_TOKEN_KEY : ACCESS_TOKEN_KEY;
 
