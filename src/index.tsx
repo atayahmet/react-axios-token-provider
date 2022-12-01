@@ -212,9 +212,9 @@ AxiosTokenProvider.propTypes = {
     setItem: PropTypes.func.isRequired,
   }),
   tokenPathVariants: PropTypes.shape({
-    accessToken: PropTypes.arrayOf(PropTypes.string).isRequired,
-    csrfToken: PropTypes.arrayOf(PropTypes.string).isRequired,
-    refreshToken: PropTypes.arrayOf(PropTypes.string).isRequired,
+    accessToken: PropTypes.arrayOf(PropTypes.string),
+    csrfToken: PropTypes.arrayOf(PropTypes.string),
+    refreshToken: PropTypes.arrayOf(PropTypes.string),
   }),
   updater: PropTypes.func,
 };
