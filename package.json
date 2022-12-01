@@ -1,6 +1,6 @@
 {
   "name": "@atayahmet/react-axios-token-provider",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "React Axios Token Provider package is a make easy what repetitive processes.",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
