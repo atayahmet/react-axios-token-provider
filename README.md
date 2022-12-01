@@ -29,8 +29,8 @@ $ yarn add @atayahmet/react-axios-token-provider
 ## Basic Usage
 
 ```jsx
-import AxiosTokenProvider from "@atayahmet/react-axios-token-provider";
-import axios from "axios";
+import AxiosTokenProvider from '@atayahmet/react-axios-token-provider';
+import axios from 'axios';
 
 function App() {
   return (
@@ -64,7 +64,7 @@ You need to define your axios instance you want to manage. If no instance is def
 **Example:**
 
 ```tsx
-import axios from "axios";
+import axios from 'axios';
 
 <AxiosTokenProvider instance={axios}>
   <App />
@@ -79,7 +79,7 @@ The init prop is a inilizer function for provide extra config to developers.
 
 ```js
 function initializer(instance) {
-  instance.baseURL = "https://reqres.in/api";
+  instance.baseURL = 'https://reqres.in/api';
 }
 ```
 
@@ -98,8 +98,8 @@ You can define all token (access, refresh or csrf) paths to this prop.
 ```tsx
 <AxiosTokenProvider
   tokenPathVariants={{
-    accessTokens: ["headers.X-Access-Token", "data.tokens.access_token"],
-    refreshTokens: ["headers.X-Refresh-Token", "data.tokens.refresh_token"]
+    accessToken: ['headers.X-Access-Token', 'data.tokens.access_token'],
+    refreshToken: ['headers.X-Refresh-Token', 'data.tokens.refresh_token'],
   }}
 ></AxiosTokenProvider>
 ```
@@ -134,14 +134,15 @@ function forbidden(response) {
 <AxiosTokenProvider
   statusCallbacks={{
     401: unauthorized,
-    403: forbidden
+    403: forbidden,
   }}
 ></AxiosTokenProvider>
 ```
 
-
 ## Contributing
+
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
 ## License
+
 [MIT](https://choosealicense.com/licenses/mit/)
