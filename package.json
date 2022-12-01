@@ -31,6 +31,7 @@
     "react",
     "react-native",
     "axios",
+    "jwt",
     "axios token",
     "axios auth token",
     "access token",
