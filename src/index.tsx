@@ -29,6 +29,7 @@ export default class AxiosTokenProvider extends Component<IAxiosTokenProvider, a
     csrfToken: DEFAULT_CSRF_TOKEN_PATHS,
     refreshToken: DEFAULT_REFRESH_TOKEN,
   };
+  private isCompMounted: boolean = false;
 
   constructor(props: IAxiosTokenProvider) {
     super(props);
@@ -40,6 +41,7 @@ export default class AxiosTokenProvider extends Component<IAxiosTokenProvider, a
   }
 
   public componentDidMount() {
+    this.isCompMounted = true;
     this.setInitialTokens(this.props);
   }
 
@@ -118,12 +120,22 @@ export default class AxiosTokenProvider extends Component<IAxiosTokenProvider, a
     return newConfig;
   };
 
+  private setStateSafely = (state: any) => {
+    if (this.isCompMounted) {
+      this.setState(state);
+    } else {
+      this.state = { ...this.state, ...state };
+    }
+  };
+
   private responseInterceptor = (response: AxiosResponse) => {
-    const tokens = { ...this.state.tokens, ...prepareTokens(this.pathVariants, response) };
+    const currentTokens = this.getTokens() || {};
+    const newTokens = prepareTokens(this.pathVariants, response);
+    const tokens = { ...currentTokens, ...newTokens };
 
     this.storage.setItem('tokens', JSON.stringify(tokens));
     this.runStatusCallbacks(response);
-    this.setState({ ...this.state, tokens });
+    this.setStateSafely({ ...this.state, tokens });
 
     return response;
   };
@@ -141,16 +153,14 @@ export default class AxiosTokenProvider extends Component<IAxiosTokenProvider, a
   private setInitialTokens = (props: IAxiosTokenProvider) => {
     const { initialAccessToken, initialRefreshToken, initialCsrfToken } = props;
     const tokens = this.getTokens() || {};
-
     const stateUpdater = (storedTokens: Record<string, string>) =>
-      this.setState({
+      this.setStateSafely({
         tokens: {
           [CSRF_TOKEN_KEY]: initialCsrfToken || storedTokens[CSRF_TOKEN_KEY],
           [ACCESS_TOKEN_KEY]: initialAccessToken || storedTokens[ACCESS_TOKEN_KEY],
           [REFRESH_TOKEN_KEY]: initialRefreshToken || storedTokens[REFRESH_TOKEN_KEY],
         },
       });
-
     if (tokens instanceof Promise) {
       return tokens.then(allTokens => stateUpdater(allTokens));
     }
@@ -180,12 +190,11 @@ export default class AxiosTokenProvider extends Component<IAxiosTokenProvider, a
   private getTokens() {
     const { tokens } = this.state || {};
 
-    if (!!tokens) {
+    if (!!tokens && Object.keys(tokens).length > 0) {
       return tokens;
     }
 
     const storedTokens = this.storage.getItem('tokens') as any;
-
     return typeof storedTokens === 'string' ? JSON.parse(storedTokens) : storedTokens;
   }
 
